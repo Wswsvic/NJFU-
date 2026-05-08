@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}添加预约计划{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="card-title mb-4">添加预约计划</h3>
+                <form method="post" action="/njfu.reserve.seat/api/plans">
+                    <div class="mb-3">
+                        <label for="room_id" class="form-label">房间选择</label>
+                        <select class="form-select" id="room_id" name="room_id" required>
+                            <option value="">请选择房间...</option>
+                            {% for rid, rinfo in rooms_data.items() %}
+                            <option value="{{ rid }}">{{ rinfo.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="seat_name" class="form-label">座位选择</label>
+                        <select class="form-select" id="seat_name" name="seat_name">
+                            <option value="">请先选择房间...</option>
+                        </select>
+                        <div class="form-text">留空则由系统自动获取合适座位</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">预约模式</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="is_full_day" id="full_day_mode" value="1" checked>
+                                <label class="form-check-label" for="full_day_mode">全天预约</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="is_full_day" id="part_day_mode" value="0">
+                                <label class="form-check-label" for="part_day_mode">非全天预约</label>
+                            </div>
+                        </div>
+                        <div class="form-text" id="full_day_help">预约时长即为所选日期的所有开放时间。</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="repeat_type">重复</label>
+                        <select class="form-select" id="repeat_type" name="repeat_type">
+                            <option value="once">只订一次</option>
+                            <option value="everyday">每天</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="custom_days_wrapper" style="display: none;">
+                        <label class="form-label">自定义预约星期</label>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="1" id="mon" name="day" checked>
+                                    <label class="form-check-label" for="mon">周一</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="2" id="tue" name="day" checked>
+                                    <label class="form-check-label" for="tue">周二</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="3" id="wed" name="day" checked>
+                                    <label class="form-check-label" for="wed">周三</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="4" id="thu" name="day">
+                                    <label class="form-check-label" for="thu">周四</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="5" id="fri" name="day">
+                                    <label class="form-check-label" for="fri">周五</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="6" id="sat" name="day">
+                                    <label class="form-check-label" for="sat">周六</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="7" id="sun" name="day">
+                                    <label class="form-check-label" for="sun">周日</label>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="days_of_week" name="days_of_week" value="">
+                    </div>
+                    <div id="time_settings_wrapper" style="display: none;">
+                        <div class="row mb-3 mt-2">
+                            <label class="form-label fw-bold">一般时段 (周一到周四、周六日)</label>
+                            <div class="col">
+                                <label for="normal_begin_time" class="form-label">开始时间</label>
+                                <input type="time" class="form-control" id="normal_begin_time" name="normal_begin_time" value="07:30" min="07:30">
+                            </div>
+                            <div class="col">
+                                <label for="normal_end_time" class="form-label">结束时间</label>
+                                <input type="time" class="form-control" id="normal_end_time" name="normal_end_time" value="22:00" max="22:00">
+                            </div>
+                        </div>
+                        <div class="row mb-3" id="friday_time_settings" style="display: none;">
+                            <label class="form-label fw-bold text-danger">周五特殊时段</label>
+                            <div class="col">
+                                <label for="friday_begin_time" class="form-label">开始时间</label>
+                                <input type="time" class="form-control" id="friday_begin_time" name="friday_begin_time" value="07:30" min="07:30">
+                            </div>
+                            <div class="col">
+                                <label for="friday_end_time" class="form-label">结束时间</label>
+                                <input type="time" class="form-control" id="friday_end_time" name="friday_end_time" value="20:00" max="20:00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3 mt-4">
+                        <div class="col">
+                            <label for="start_date" class="form-label">开始日期</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="">
+                        </div>
+                        <div class="col">
+                            <label for="end_date" class="form-label">结束日期（可选）</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" value="">
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">保存计划</button>
+                        <a href="/njfu.reserve.seat/" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const roomsData = {{ rooms_data | tojson | safe }};
+const roomSelect = document.getElementById('room_id');
+const seatSelect = document.getElementById('seat_name');
+
+roomSelect.addEventListener('change', function() {
+    const roomId = this.value;
+    seatSelect.innerHTML = '<option value="">(任意座位)</option>';
+    if (roomId && roomsData[roomId]) {
+        const seats = roomsData[roomId].seats;
+        seats.forEach(seat => {
+            const opt = document.createElement('option');
+            opt.value = seat;
+            opt.textContent = seat;
+            seatSelect.appendChild(opt);
+        });
+    }
+});
+
+const isFullDayRadios = document.querySelectorAll('input[name="is_full_day"]');
+const repeatTypeSelect = document.getElementById('repeat_type');
+const customDaysWrapper = document.getElementById('custom_days_wrapper');
+const timeSettingsWrapper = document.getElementById('time_settings_wrapper');
+const fridayTimeSettings = document.getElementById('friday_time_settings');
+const fullDayHelp = document.getElementById('full_day_help');
+
+function syncUI() {
+    const isFullDay = document.getElementById('full_day_mode').checked;
+    const repeatType = repeatTypeSelect.value;
+
+    // 显示或隐藏自定义星期天数选择框
+    customDaysWrapper.style.display = (repeatType === 'custom') ? 'block' : 'none';
+
+    // 显示或隐藏非全天时间设置区块
+    timeSettingsWrapper.style.display = isFullDay ? 'none' : 'block';
+    fullDayHelp.style.display = isFullDay ? 'block' : 'none';
+
+    // 判断当前重复规则是否包含了周五 (5)
+    let includesFriday = false;
+    if (repeatType === 'everyday' || repeatType === 'once') {
+        includesFriday = true;
+    } else if (repeatType === 'custom') {
+        const checked = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(c => c.value);
+        if (checked.includes('5')) {
+            includesFriday = true;
+        }
+    }
+
+    if (!isFullDay && includesFriday) {
+        fridayTimeSettings.style.display = 'flex';
+    } else {
+        fridayTimeSettings.style.display = 'none';
+    }
+}
+
+// 绑定各种改变事件来刷新UI
+isFullDayRadios.forEach(radio => radio.addEventListener('change', syncUI));
+repeatTypeSelect.addEventListener('change', syncUI);
+
+document.querySelectorAll('input[name="day"]').forEach(cb => {
+    cb.addEventListener('change', function() {
+        const checked = document.querySelectorAll('input[name="day"]:checked');
+        const values = Array.from(checked).map(c => c.value);
+        document.getElementById('days_of_week').value = values.join(',');
+        syncUI();
+    });
+});
+
+// 初始化
+document.querySelectorAll('input[name="day"]').forEach(cb => {
+    if(cb.checked) {
+        const _values = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(c => c.value);
+        document.getElementById('days_of_week').value = _values.join(',');
+    }
+});
+syncUI();
+
+// 动态限制开始日期必须从下2天开始
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+const tomorrowStr = tomorrow.toISOString().split('T')[0];
+const startDateInput = document.getElementById('start_date');
+startDateInput.min = tomorrowStr;
+// 默认选上下填明天（如果用户愿意）
+startDateInput.value = tomorrowStr;
+const endDateInput = document.getElementById('end_date');
+endDateInput.min = tomorrowStr; // 结束日期也顺带限制一下，不能比明天早
+
+startDateInput.addEventListener('change', function() {
+    if (endDateInput.value && endDateInput.value < this.value) {
+        endDateInput.value = this.value;
+    }
+    endDateInput.min = this.value;
+});
+
+</script>
+{% endblock %}

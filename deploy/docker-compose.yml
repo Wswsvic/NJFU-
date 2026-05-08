@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  seat_reserve_web:
+    build: 
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: njfu_seat_reserve
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      # 映射数据挂载，保证重启/更新容器不丢失用户和日志等数据
+      - ../data:/app/data
+      - ../get_API:/app/get_API
+    environment:
+      - TZ=Asia/Shanghai # 确保容器内是北京时间，防止 07:30 调度失效

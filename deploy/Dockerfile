@@ -17,4 +17,6 @@ COPY . .
 ENV HEADLESS=true
 ENV CHROME_BIN=/usr/bin/chromium
 
-CMD ["python", "-m", "src.cli.main"]
+EXPOSE 8000
+
+CMD ["uvicorn", "web.main:app", "--host", "0.0.0.0", "--port", "8000"]

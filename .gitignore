@@ -23,3 +23,7 @@ logs/
 # 系统文件
 .DS_Store
 Thumbs.db
+# 忽略本地测试数据
+!data/
+data/*.json
+!data/.gitkeep

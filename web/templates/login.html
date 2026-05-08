@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}登录 - 座位预约{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center mb-4">登录</h3>
+                <form method="post" action="/njfu.reserve.seat/api/login">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">学号</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">图书馆密码</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">登录</button>
+                    </div>
+                    <p class="text-center mt-3 mb-0">
+                        没有账号？<a href="/njfu.reserve.seat/register">去注册</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
