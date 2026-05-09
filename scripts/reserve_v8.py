@@ -341,7 +341,7 @@ class LibraryBot:
 
 
 if __name__ == "__main__":
-    bot = LibraryBot(username="2310801123", password_plain="njfuXYK264516!", headless=False)
+    bot = LibraryBot(username="x", password_plain="x", headless=False)
     try:
         bot.login()
 
