@@ -48,7 +48,12 @@ async def lifespan(app: FastAPI):
     # 关闭时的清理逻辑可以放在此处
 
 
-app = FastAPI(title="图书馆座位预约系统", lifespan=lifespan)
+app = FastAPI(
+    title="图书馆座位预约系统",
+    lifespan=lifespan,
+    docs_url=None,
+    openapi_url=None
+)
 
 # 模板目录
 templates = Jinja2Templates(

@@ -8,9 +8,9 @@
                 <h3 class="card-title mb-4">添加预约计划</h3>
                 <form method="post" action="/njfu.reserve.seat/api/plans">
                     <div class="mb-3">
-                        <label for="room_id" class="form-label">房间选择</label>
+                        <label for="room_id" class="form-label">楼层选择</label>
                         <select class="form-select" id="room_id" name="room_id" required>
-                            <option value="">请选择房间...</option>
+                            <option value="">请选择楼层...</option>
                             {% for rid, rinfo in rooms_data.items() %}
                             <option value="{{ rid }}">{{ rinfo.name }}</option>
                             {% endfor %}
@@ -19,7 +19,7 @@
                     <div class="mb-3">
                         <label for="seat_name" class="form-label">座位选择</label>
                         <select class="form-select" id="seat_name" name="seat_name">
-                            <option value="">请先选择房间...</option>
+                            <option value="">请先选择楼层...</option>
                         </select>
                         <div class="form-text">留空则由系统自动获取合适座位</div>
                     </div>

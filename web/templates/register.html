@@ -6,6 +6,7 @@
         <div class="card shadow">
             <div class="card-body p-4">
                 <h3 class="card-title text-center mb-4">注册</h3>
+                <div id="success-alert" class="alert alert-success text-center" style="display: none;" role="alert"></div>
                 <div id="error-alert" class="alert alert-danger text-center" style="display: none;" role="alert"></div>
                 <form method="post" action="/njfu.reserve.seat/api/register" id="register-form">
                     <div class="mb-3">
@@ -42,9 +43,11 @@ document.getElementById('register-form').addEventListener('submit', async functi
     const form = e.target;
     const submitBtn = document.getElementById('submit-btn');
     const errorAlert = document.getElementById('error-alert');
+    const successAlert = document.getElementById('success-alert');
 
     // 隐藏之前的错误信息
     errorAlert.style.display = 'none';
+    successAlert.style.display = 'none';
 
     // 切换按钮为加载状态（因为后台开了无头浏览器登录，可能需要几秒到十几秒）
     submitBtn.disabled = true;
@@ -60,9 +63,13 @@ document.getElementById('register-form').addEventListener('submit', async functi
         });
 
         if (response.ok) {
-            // 后端最后通过 RedirectResponse 跳转到了 /login，response.ok 为 true
-            // 或者直接让前端控制跳转：
-            window.location.href = '/njfu.reserve.seat/login';
+            // 解析注册成功并弹出提示，延迟 2 秒跳转
+            submitBtn.innerHTML = '注册成功';
+            successAlert.textContent = '账户密码校验正确，2秒后跳转登录页面...';
+            successAlert.style.display = 'block';
+            setTimeout(() => {
+                window.location.href = '/njfu.reserve.seat/login';
+            }, 2000);
         } else {
             // 解析 400 等报错信息 (FastAPI HTTPException 的格式: {"detail": "报错内容"})
             const data = await response.json();
