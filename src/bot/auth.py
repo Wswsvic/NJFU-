@@ -14,6 +14,13 @@ class AuthManager:
     def browser_login(self) -> Tuple[List[Tuple[str, str, str, str]], Optional[str]]:
         """通过 WebVPN 门户登录并提取 token"""
         from DrissionPage import ChromiumPage, ChromiumOptions
+        import os
+
+        # 获取项目根目录并确保 debug 文件夹存在
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        debug_dir = os.path.join(base_dir, "debug")
+        os.makedirs(debug_dir, exist_ok=True)
+        log_path = os.path.join(debug_dir, "chrome_debug.log")
 
         co = ChromiumOptions()
         if self.headless:
@@ -23,14 +30,14 @@ class AuthManager:
         co.set_argument("--disable-dev-shm-usage")
         co.set_argument("--enable-logging")
         co.set_argument("--v=1")
-        co.set_argument("--log-path=./debug/chrome_debug.log")
+        co.set_argument(f"--log-path={log_path}")
         page = ChromiumPage(co)
 
         try:
             # Step 1: 打开 WebVPN 门户
             print("  [1] Opening WebVPN portal...")
             page.get(Settings.WEBVPN_BASE)
-            time.sleep(3)
+            time.sleep(2)
             print("  [1] URL: %s" % page.url[:120])
 
             # Step 2: CAS 登录
@@ -39,7 +46,7 @@ class AuthManager:
                 uname_el = page.ele("#username") or page.ele("@name=username")
                 pwd_el = page.ele("#password") or page.ele("@name=password")
                 if not uname_el or not pwd_el:
-                    time.sleep(3)
+                    time.sleep(2)
                     uname_el = page.ele("#username") or page.ele("@name=username")
                     pwd_el = page.ele("#password") or page.ele("@name=password")
                 if not uname_el or not pwd_el:
@@ -76,7 +83,7 @@ class AuthManager:
             seat_connect = Settings.WEBVPN_BASE + "/rump_frontend/connect/?target=Library&id=12"
             print("  [3] Navigating to seat system...")
             page.get(seat_connect)
-            time.sleep(3)
+            time.sleep(2)
             print("  [3] URL: %s" % page.url[:120])
 
             # 处理 rump_frontend 重定向
@@ -84,7 +91,7 @@ class AuthManager:
                 link = page.ele("#url")
                 if link:
                     link.click()
-                    time.sleep(3)
+                    time.sleep(2)
                     print("  [3] Clicked redirect, now: %s" % page.url[:120])
 
             # Step 3.5: 在图书馆页面点击座位预约入口
@@ -103,7 +110,7 @@ class AuthManager:
             if seat_btn:
                 print("  [3] On library page, clicking seat entry...")
                 seat_btn.click()
-                time.sleep(5) # 给一点渲染时间
+                time.sleep(3) # 给一点渲染时间
                 print("  [3] Clicked seat entry, now: %s" % page.url[:120])
                 
                 # 有些系统需要点击后强制获取真正用来交互的 token
@@ -112,6 +119,7 @@ class AuthManager:
                     print("  [3] Found token in localStorage: %s..." % str(token)[:10])
             else:
                 print("  [3] Cannot find seat entry. (This may be the issue!)")
+                page.get_screenshot(path=os.path.join(debug_dir, "error_snap_no_entry.png"))
 
             cookies = self._get_all_cookies(page)
             return cookies, None
@@ -119,6 +127,10 @@ class AuthManager:
         except Exception as e:
             import traceback
             traceback.print_exc()
+            try:
+                page.get_screenshot(path=os.path.join(debug_dir, "error_snap_exception.png"))
+            except:
+                pass
             return [], None
         finally:
             try:
@@ -164,3 +176,4 @@ class AuthManager:
             pass
 
         return result
+
