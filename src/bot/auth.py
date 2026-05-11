@@ -21,6 +21,9 @@ class AuthManager:
         co.set_argument("--no-sandbox")
         co.set_argument("--disable-gpu")
         co.set_argument("--disable-dev-shm-usage")
+        co.set_argument("--enable-logging")
+        co.set_argument("--v=1")
+        co.set_argument("--log-path=./debug/chrome_debug.log")
         page = ChromiumPage(co)
 
         try:
