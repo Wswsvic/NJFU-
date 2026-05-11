@@ -7,6 +7,7 @@ RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debia
     && apt-get install -y --no-install-recommends \
        chromium \
        chromium-driver \
+       tini \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -21,5 +22,8 @@ ENV HEADLESS=true
 ENV CHROME_BIN=/usr/bin/chromium
 
 EXPOSE 8000
+
+# 使用 tini 作为 init 进程，它负责收割所有的僵尸孤儿进程
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 CMD ["uvicorn", "web.main:app", "--host", "0.0.0.0", "--port", "8000"]
