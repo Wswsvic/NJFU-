@@ -20,12 +20,11 @@ if not username or not password:
     print("❌ 请先设置 .env 文件中的 LIBRARY_USERNAME 和 LIBRARY_PASSWORD")
     sys.exit(1)
 
-# 先使用有头模式测试，确认能正常打开浏览器
-print("创建 LibraryBot (有头模式)...")
+print("创建 LibraryBot (无头模式)...")
 bot = LibraryBot(
     username=username,
     password_plain=password,
-    headless=False,  # 有头模式，方便观察
+    headless=True,
 )
 
 print("\n开始登录...")

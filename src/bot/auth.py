@@ -85,7 +85,7 @@ class AuthManager:
                     print("  [3] Clicked redirect, now: %s" % page.url[:120])
 
             # Step 3.5: 在图书馆页面点击座位预约入口
-            time.sleep(3)
+            time.sleep(1)
             current_title = page.title or ""
             print("  [3] Checking library page title: %s" % current_title)
             
@@ -113,11 +113,15 @@ class AuthManager:
             cookies = self._get_all_cookies(page)
             return cookies, None
 
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return [], None
         finally:
             try:
                 page.quit()
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"  [WARN] Failed to quit ChromiumPage gracefully: {e}")
 
     @staticmethod
     def _get_all_cookies(page) -> List[Tuple[str, str, str, str]]:

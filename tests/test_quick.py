@@ -137,7 +137,7 @@ if __name__ == "__main__":
     test_config()
     test_crypto()
     bot = test_bot_creation()
-    test_login(bot, skip_login=True)
+    test_login(bot, skip_login=False)
 
     print("\n" + "=" * 60)
     print("✅ 基础测试全部通过！")
