@@ -86,32 +86,29 @@ class AuthManager:
 
             # Step 3.5: 在图书馆页面点击座位预约入口
             time.sleep(3)
-            if "南京林业大学图书馆" in (page.title or ""):
+            current_title = page.title or ""
+            print("  [3] Checking library page title: %s" % current_title)
+            
+            seat_btn = (
+                page.ele(".group-item-img-2")
+                or page.ele("tag:span@class=group-item-img group-item-img-2")
+                or page.ele("text:座位预约")
+                or page.ele("text:空间预约")
+                or page.ele("tag:a@href:seat")
+            )
+            
+            if seat_btn:
                 print("  [3] On library page, clicking seat entry...")
-                seat_btn = (
-                    page.ele(".group-item-img-2")
-                    or page.ele("tag:span@class=group-item-img group-item-img-2")
-                    or page.ele("text:座位预约")
-                    or page.ele("text:空间预约")
-                    or page.ele("tag:a@href:seat")
-                )
-                if seat_btn:
-                    seat_btn.click()
-                    time.sleep(3)
-                    print("  [3] Clicked seat entry, now: %s" % page.url[:120])
-                else:
-                    print("  [3] Cannot find seat entry, dumping spans...")
-                    try:
-                        spans = page.eles("tag:span")
-                        print("  [3] Found %d spans:" % len(spans))
-                        for s in spans[:20]:
-                            cls = s.attr("class") or ""
-                            txt = (s.text or "")[:30]
-                            print("  [3]   class='%s' text='%s'" % (cls, txt))
-                    except Exception:
-                        pass
+                seat_btn.click()
+                time.sleep(5) # 给一点渲染时间
+                print("  [3] Clicked seat entry, now: %s" % page.url[:120])
+                
+                # 有些系统需要点击后强制获取真正用来交互的 token
+                token = page.local_storage("token") # 尝试获取 local_storage 中的 token
+                if token:
+                    print("  [3] Found token in localStorage: %s..." % str(token)[:10])
             else:
-                print("  [3] Not on library page, title: %s" % (page.title or ""))
+                print("  [3] Cannot find seat entry. (This may be the issue!)")
 
             cookies = self._get_all_cookies(page)
             return cookies, None

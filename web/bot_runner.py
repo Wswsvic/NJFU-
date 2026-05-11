@@ -43,6 +43,8 @@ def execute_reservation(plan: dict) -> tuple:
     try:
         bot.login()
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return False, f"登录失败: {e}"
 
     try:
@@ -74,6 +76,9 @@ def execute_reservation(plan: dict) -> tuple:
             return True, f"预约成功，编号: {resv_id}"
         else:
             msg = result.get("message", str(result)) if result else "无可用座位"
+            print(f"[{target_date}] 预约返回信息: {msg}")
             return False, msg
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return False, str(e)

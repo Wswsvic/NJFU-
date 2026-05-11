@@ -1,17 +1,44 @@
-version: '3.8'
-
 services:
+  # Nginx 反向代理
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: njfu_nginx
+    restart: always
+    ports:
+      - "8000:80"  # Nginx 监听 80，映射到宿主机的 8000
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - seat_reserve_web
+    networks:
+      - app_network
+
+  # FastAPI 应用（不再暴露端口到宿主机）
   seat_reserve_web:
     build: 
       context: ..
       dockerfile: deploy/Dockerfile
     container_name: njfu_seat_reserve
     restart: always
-    ports:
-      - "8000:8000"
+    # ports:  # 注释掉端口暴露，只通过 Nginx 访问
+    #   - "8000:8000"
+    expose:
+      - "8000"  # 只在 Docker 网络内部暴露
     volumes:
-      # 映射数据挂载，保证重启/更新容器不丢失用户和日志等数据
       - ../data:/app/data
       - ../get_API:/app/get_API
+    env_file:
+      - ../.env
     environment:
-      - TZ=Asia/Shanghai # 确保容器内是北京时间，防止 07:30 调度失效
+      - TZ=Asia/Shanghai
+      
+      # 告诉 Uvicorn 它在代理后面
+      - FORWARDED_ALLOW_IPS=*
+      - PROXY_HEADERS=True
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

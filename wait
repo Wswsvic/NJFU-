@@ -1,0 +1,1 @@
+新建一个test脚本：功能是读取plans.json文件，完成登录并预约第一个plan，以bot_runner中的execute_reservation函数完成。
