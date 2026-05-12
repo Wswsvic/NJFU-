@@ -132,7 +132,11 @@ def start_scheduler():
     )
 
     scheduler.start()
-    print("[Scheduler] Started. Will trigger daily at 07:30.")
+    print("[Scheduler] Started. Will trigger daily at 07:30 and 22:00.")
+
+    # 部署/重启后立即执行一次（方便验证）
+    import threading as _threading
+    _threading.Thread(target=scan_and_execute, daemon=True).start()
 
     # 部署/重启后立即执行一次（方便测试）
     print("[Scheduler] Running initial scan immediately for testing...")

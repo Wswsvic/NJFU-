@@ -28,10 +28,12 @@ services:
     volumes:
       - ../data:/app/data
       - ../get_API:/app/get_API
+      - ../debug:/app/debug      # 映射 debug 目录，持久化操作日志
     env_file:
       - ../.env
     environment:
       - TZ=Asia/Shanghai
+      - PYTHONUNBUFFERED=1    # 禁用 stdout 缓冲，确保 docker logs -f 实时输出
       
       # 告诉 Uvicorn 它在代理后面
       - FORWARDED_ALLOW_IPS=*

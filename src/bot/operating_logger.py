@@ -77,6 +77,7 @@ class OperatingLogger:
 
             def write(self, s):
                 self._original.write(s)
+                self._original.flush()
                 if s.strip():
                     self._logger.write(s.rstrip("\n"))
 

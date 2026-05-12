@@ -38,6 +38,9 @@ def load_rooms_data():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # 禁用 Python stdout 缓冲（确保 Docker logs 实时输出）
+    sys.stdout.reconfigure(line_buffering=True)
+
     # 启动前初始化数据文件和调度器
     data.get_users()
     data.get_plans()
