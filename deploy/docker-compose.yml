@@ -26,9 +26,9 @@ services:
     expose:
       - "8000"  # 只在 Docker 网络内部暴露
     volumes:
-      - ../data:/app/data
-      - ../get_API:/app/get_API
-      - ../debug:/app/debug      # 映射 debug 目录，持久化操作日志
+      - ../data:/app/data       # 映射 data 目录，持久化用户数据和预约计划
+      - ../get_API:/app/get_API # 映射 get_API 目录，持久化 API 响应缓存
+      - ../debug:/app/debug     # 映射 debug 目录，持久化操作日志
     env_file:
       - ../.env
     environment:
