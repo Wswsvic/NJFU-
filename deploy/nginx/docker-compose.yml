@@ -23,3 +23,9 @@ services:
       # 告诉 Uvicorn 它在代理后面
       - FORWARDED_ALLOW_IPS=*
       - PROXY_HEADERS=True
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
