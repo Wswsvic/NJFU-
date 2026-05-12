@@ -22,6 +22,8 @@ def decrypt_password(token: str) -> str:
 
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
+DEBUG_DIR = os.path.join(BASE_DIR, 'debug')
+os.makedirs(DEBUG_DIR, exist_ok=True)
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 PLANS_FILE = os.path.join(DATA_DIR, 'plans.json')
-LOGS_FILE = os.path.join(DATA_DIR, 'logs.json')
+LOGS_FILE = os.path.join(DEBUG_DIR, 'logs.json')

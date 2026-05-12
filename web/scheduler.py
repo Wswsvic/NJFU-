@@ -109,13 +109,28 @@ def _run_and_log(plan: dict, target_date: str):
 
 
 def start_scheduler():
-    """启动调度器（每天 07:30 触发，启动时立即执行一次）"""
+    """启动调度器（每天 07:30 触发预约，22:00 归档日志）"""
     scheduler.add_job(
         scan_and_execute,
         CronTrigger(hour=7, minute=30),
         id="seat_scan",
         name="Daily seat reservation scan",
     )
+
+    # 每晚 22:00 压缩 debug/ 中的操作日志，保留最近 3 天
+    import os
+    from src.bot.operating_logger import OperatingLogger as _OpLog
+    _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    _DEBUG_DIR = os.path.join(_BASE_DIR, "debug")
+
+    scheduler.add_job(
+        _OpLog.archive_and_cleanup,
+        CronTrigger(hour=22, minute=0),
+        args=(_DEBUG_DIR,),
+        id="log_archive",
+        name="Daily operating log archive",
+    )
+
     scheduler.start()
     print("[Scheduler] Started. Will trigger daily at 07:30.")
 

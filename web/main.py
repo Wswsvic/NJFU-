@@ -45,7 +45,10 @@ async def lifespan(app: FastAPI):
     load_rooms_data()
     scheduler.start_scheduler()
     yield
-    # 关闭时的清理逻辑可以放在此处
+    # 关闭时释放资源：关闭调度器，防止后台线程残留
+    from web.scheduler import scheduler as _sched
+    _sched.shutdown(wait=False)
+    print("[Shutdown] Scheduler stopped.")
 
 
 app = FastAPI(

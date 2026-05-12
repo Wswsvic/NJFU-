@@ -9,27 +9,36 @@ from . import config
 _lock = threading.Lock()
 
 
+def _read_json_raw(filepath: str, default: list[Any]) -> list[Any]:
+    """读取 JSON（不加锁，由调用者持有锁）"""
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError("data is not a list")
+            return data
+    except (FileNotFoundError, json.JSONDecodeError, ValueError):
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(default, f, ensure_ascii=False, indent=2)
+        return default
+
+
+def _write_json_raw(filepath: str, data: list[Any]) -> None:
+    """写入 JSON（不加锁，由调用者持有锁）"""
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 def _read_json(filepath: str, default: list[Any]) -> list[Any]:
-    """安全读取 JSON 文件"""
+    """线程安全读取 JSON 文件"""
     with _lock:
-        try:
-            with open(filepath, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if not isinstance(data, list):
-                    # 文件损坏，重建
-                    raise ValueError("data is not a list")
-                return data
-        except (FileNotFoundError, json.JSONDecodeError, ValueError):
-            with open(filepath, "w", encoding="utf-8") as f:
-                json.dump(default, f, ensure_ascii=False, indent=2)
-            return default
+        return _read_json_raw(filepath, default)
 
 
 def _write_json(filepath: str, data: list[Any]) -> None:
-    """安全写入 JSON 文件"""
+    """线程安全写入 JSON 文件"""
     with _lock:
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        _write_json_raw(filepath, data)
 
 
 # ========== 用户操作 ==========
@@ -44,10 +53,11 @@ def save_users(users: list[dict]) -> None:
 
 
 def add_user(user: dict) -> dict:
-    users = get_users()
-    user["id"] = max((u["id"] for u in users), default=0) + 1
-    users.append(user)
-    save_users(users)
+    with _lock:
+        users = _read_json_raw(config.USERS_FILE, [])
+        user["id"] = max((u["id"] for u in users), default=0) + 1
+        users.append(user)
+        _write_json_raw(config.USERS_FILE, users)
     return user
 
 
@@ -89,10 +99,11 @@ def save_plans(plans: list[dict]) -> None:
 
 
 def add_plan(plan: dict) -> dict:
-    plans = get_plans()
-    plan["id"] = max((p["id"] for p in plans), default=0) + 1
-    plans.append(plan)
-    save_plans(plans)
+    with _lock:
+        plans = _read_json_raw(config.PLANS_FILE, [])
+        plan["id"] = max((p["id"] for p in plans), default=0) + 1
+        plans.append(plan)
+        _write_json_raw(config.PLANS_FILE, plans)
     return plan
 
 
@@ -105,21 +116,25 @@ def get_active_plans() -> list[dict]:
 
 
 def update_plan(plan: dict) -> bool:
-    plans = get_plans()
-    for i, p in enumerate(plans):
-        if p["id"] == plan["id"]:
-            plans[i] = plan
-            save_plans(plans)
-            return True
+    """线程安全地更新计划（锁覆盖整个读-改-写）"""
+    with _lock:
+        plans = _read_json_raw(config.PLANS_FILE, [])
+        for i, p in enumerate(plans):
+            if p["id"] == plan["id"]:
+                plans[i] = plan
+                _write_json_raw(config.PLANS_FILE, plans)
+                return True
     return False
 
 
 def delete_plan(plan_id: int) -> bool:
-    plans = get_plans()
-    new_plans = [p for p in plans if p["id"] != plan_id]
-    if len(new_plans) == len(plans):
-        return False
-    save_plans(new_plans)
+    """线程安全地删除计划（锁覆盖整个读-改-写）"""
+    with _lock:
+        plans = _read_json_raw(config.PLANS_FILE, [])
+        new_plans = [p for p in plans if p["id"] != plan_id]
+        if len(new_plans) == len(plans):
+            return False
+        _write_json_raw(config.PLANS_FILE, new_plans)
     return True
 
 
@@ -135,10 +150,12 @@ def save_logs(logs: list[dict]) -> None:
 
 
 def add_log(log: dict) -> dict:
-    logs = get_logs()
-    log["id"] = max((l["id"] for l in logs), default=0) + 1
-    logs.append(log)
-    save_logs(logs)
+    """线程安全地追加日志（锁覆盖整个读-改-写）"""
+    with _lock:
+        logs = _read_json_raw(config.LOGS_FILE, [])
+        log["id"] = max((l["id"] for l in logs), default=0) + 1
+        logs.append(log)
+        _write_json_raw(config.LOGS_FILE, logs)
     return log
 
 
