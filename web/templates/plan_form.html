@@ -206,7 +206,7 @@ syncUI();
 
 // 动态限制开始日期必须从下2天开始
 const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
+tomorrow.setDate(tomorrow.getDate() + 2);
 const tomorrowStr = tomorrow.toISOString().split('T')[0];
 const startDateInput = document.getElementById('start_date');
 startDateInput.min = tomorrowStr;
