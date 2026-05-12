@@ -3,13 +3,15 @@
 """
 from datetime import datetime, timedelta
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from . import data
 from .bot_runner import execute_reservation
 
 scheduler = BackgroundScheduler()
-_scan_lock = threading.Lock()   # 防止 scan_and_execute 重入
+_scan_lock = threading.Lock()
+_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="seat_resv")
 
 
 def scan_and_execute():
@@ -85,15 +87,9 @@ def _scan_and_execute_impl():
         plan_to_run["_target_begin"] = target_begin
         plan_to_run["_target_end"] = target_end
 
-        # 5. 异步执行
+        # 5. 线程池执行（最多 2 个 Chromium 并发）
         print(f"  [EXEC] Plan #{plan['id']}: room={plan['room_id']}, time={target_begin}~{target_end}")
-        import threading
-        t = threading.Thread(
-            target=_run_and_log,
-            args=(plan_to_run, target_date),
-            daemon=True,
-        )
-        t.start()
+        _executor.submit(_run_and_log, plan_to_run, target_date)
 
 
 def _run_and_log(plan: dict, target_date: str):

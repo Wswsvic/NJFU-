@@ -1,2 +1,9 @@
 05/12/10：59执行了预约，但是服务器并没有正确写入日志。猜测：日志记录当天晚上才会写入？日志记录在服务结束后写入？日志写入慢？
     solved-报错导致的未能正确写入。捕获error未处理，阻塞了日志写入。
+
+爆内存问题：[root@VM-0-5-rockylinux ~]# free -h
+               total        used        free      shared  buff/cache   available
+Mem:           3.6Gi       1.8Gi       746Mi        10Mi       1.4Gi       1.8Gi
+Swap:             0B          0B          0B
+
+我还没更新代码的内存使用情况。

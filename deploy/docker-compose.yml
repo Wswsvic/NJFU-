@@ -21,10 +21,10 @@ services:
       dockerfile: deploy/Dockerfile
     container_name: njfu_seat_reserve
     restart: always
-    # ports:  # 注释掉端口暴露，只通过 Nginx 访问
-    #   - "8000:8000"
+    mem_limit: 2g               # 1 个 Chromium ~400MB + Python ~200MB，留安全余量
+    shm_size: 256m
     expose:
-      - "8000"  # 只在 Docker 网络内部暴露
+      - "8000"
     volumes:
       - ../data:/app/data       # 映射 data 目录，持久化用户数据和预约计划
       - ../get_API:/app/get_API # 映射 get_API 目录，持久化 API 响应缓存
