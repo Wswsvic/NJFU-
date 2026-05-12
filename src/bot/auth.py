@@ -79,7 +79,7 @@ class AuthManager:
             time.sleep(2)
             print("  [2] Current URL: %s" % page.url[:120])
 
-            # Step 3: 导航到座位系统
+            # Step 3: 导航到座位系统（通过图书馆页面）
             seat_connect = Settings.WEBVPN_BASE + "/rump_frontend/connect/?target=Library&id=12"
             print("  [3] Navigating to seat system...")
             page.get(seat_connect)
@@ -106,23 +106,56 @@ class AuthManager:
                 or page.ele("text:空间预约")
                 or page.ele("tag:a@href:seat")
             )
+
+            token = None
             
             if seat_btn:
                 print("  [3] On library page, clicking seat entry...")
                 seat_btn.click()
-                time.sleep(3) # 给一点渲染时间
-                print("  [3] Clicked seat entry, now: %s" % page.url[:120])
+                time.sleep(1)
                 
-                # 有些系统需要点击后强制获取真正用来交互的 token
-                token = page.local_storage("token") # 尝试获取 local_storage 中的 token
-                if token:
-                    print("  [3] Found token in localStorage: %s..." % str(token)[:10])
+                # 切换到最新标签页
+                if page.tabs_count > 1:
+                    print(f"  [3] Detected {page.tabs_count} tabs, switching to the latest one...")
+                    page.get_tab(page.latest_tab).set.activate()
+                    time.sleep(1)
+                
+                print("  [3] Clicked seat entry, now: %s" % page.url[:200])
+                
+                # 等待 SPA 初始化
+                print("  [3] Waiting for SPA to initialize...")
+                time.sleep(3)
+
+            # Step 4: 提取 token（浏览器同步 XHR 调 SEAT_PATH 的 userInfo API）
+            print("  [4] Extracting token...")
+            from config.settings import Settings as _Settings
+            userinfo_api = _Settings.WEBVPN_BASE + _Settings.SEAT_PATH + "/ic-web/auth/userInfo"
+            
+            token = page.run_js('''
+                try {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET", arguments[0] + "?vpn-12-libseat.njfu.edu.cn", false);
+                    xhr.send();
+                    if (xhr.status === 200) {
+                        var data = JSON.parse(xhr.responseText);
+                        return (data.data && data.data.token) ? data.data.token : null;
+                    }
+                } catch(e) {}
+                return null;
+            ''', userinfo_api)
+            
+            if token:
+                print("  [4] Token: %s..." % str(token)[:20])
             else:
-                print("  [3] Cannot find seat entry. (This may be the issue!)")
-                page.get_screenshot(path=os.path.join(debug_dir, "error_snap_no_entry.png"))
+                print("  [4] WARNING: Could not extract token!")
+
+            if token:
+                print("  [4] Found extracted token: %s..." % str(token)[:10])
+            else:
+                print("  [4] WARNING: Could not extract token!")
 
             cookies = self._get_all_cookies(page)
-            return cookies, None
+            return cookies, token
 
         except Exception as e:
             import traceback
