@@ -23,6 +23,10 @@ class AuthManager:
         log_path = os.path.join(debug_dir, "chrome_debug.log")
 
         co = ChromiumOptions()
+        # Linux 容器: 手动指定 Chromium 路径 (DrissionPage 不读 CHROME_BIN 环境变量)
+        chrome_bin = os.environ.get("CHROME_BIN", "")
+        if chrome_bin and os.path.exists(chrome_bin):
+            co.set_browser_path(chrome_bin)
         if self.headless:
             co.headless(True)
         co.set_argument("--no-sandbox")
@@ -170,13 +174,20 @@ class AuthManager:
                 page.quit()
             except Exception as e:
                 print(f"  [WARN] Failed to quit ChromiumPage gracefully: {e}")
-                # 兜底：尝试强制终止 Chrome 进程
-                import subprocess
+                # 兜底：尝试强制终止 Chrome/Chromium 进程
+                import subprocess, platform
                 try:
-                    subprocess.run(
-                        ["taskkill", "/F", "/IM", "chrome.exe", "/T"],
-                        capture_output=True, timeout=5,
-                    )
+                    if platform.system() == "Windows":
+                        subprocess.run(
+                            ["taskkill", "/F", "/IM", "chrome.exe", "/T"],
+                            capture_output=True, timeout=5,
+                        )
+                    else:
+                        # Linux/Docker 容器中
+                        subprocess.run(
+                            ["pkill", "-f", "chromium|chrome"],
+                            capture_output=True, timeout=5,
+                        )
                 except Exception:
                     pass
 
