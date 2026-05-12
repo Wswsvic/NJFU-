@@ -50,12 +50,7 @@ def scan_and_execute():
         if end and target_date > end:
             continue
 
-        # 3. 去重：今天已经执行过（无论成败），不再重复
-        existing = data.get_log_by_plan_and_date(plan["id"], target_date)
-        if existing:
-            continue
-
-        # 4. 计算目标时间段
+        # 3. 计算目标时间段
         if plan.get("is_full_day", False):
             target_begin = "07:30"
             target_end = "20:00" if is_friday else "22:00"
@@ -114,8 +109,7 @@ def _run_and_log(plan: dict, target_date: str):
 
 
 def start_scheduler():
-    """启动调度器（每天 07:30 触发）"""
-    # 使用 cron 触发器替代 interval，确保精确在 07:30 触发
+    """启动调度器（每天 07:30 触发，启动时立即执行一次）"""
     scheduler.add_job(
         scan_and_execute,
         CronTrigger(hour=7, minute=30),
@@ -124,3 +118,7 @@ def start_scheduler():
     )
     scheduler.start()
     print("[Scheduler] Started. Will trigger daily at 07:30.")
+
+    # 部署/重启后立即执行一次（方便测试）
+    print("[Scheduler] Running initial scan immediately for testing...")
+    scan_and_execute()
