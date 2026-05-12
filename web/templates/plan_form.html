@@ -136,7 +136,7 @@ roomSelect.addEventListener('change', function() {
     const roomId = this.value;
     seatSelect.innerHTML = '<option value="">(任意座位)</option>';
     if (roomId && roomsData[roomId]) {
-        const seats = roomsData[roomId].seats;
+        const seats = roomsData[roomId].seats.slice().sort();
         seats.forEach(seat => {
             const opt = document.createElement('option');
             opt.value = seat;
