@@ -2,15 +2,28 @@
 调度器：每天早上 07:30 触发，扫描并执行预约任务
 """
 from datetime import datetime, timedelta
+import threading
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from . import data
 from .bot_runner import execute_reservation
 
 scheduler = BackgroundScheduler()
+_scan_lock = threading.Lock()   # 防止 scan_and_execute 重入
 
 
 def scan_and_execute():
+    """扫描所有激活计划，执行到时间的预约"""
+    if not _scan_lock.acquire(blocking=False):
+        print("[Scheduler] Previous scan still running, skipping.")
+        return
+    try:
+        _scan_and_execute_impl()
+    finally:
+        _scan_lock.release()
+
+
+def _scan_and_execute_impl():
     """扫描所有激活计划，执行到时间的预约"""
     now = datetime.now()
 
@@ -134,10 +147,5 @@ def start_scheduler():
     scheduler.start()
     print("[Scheduler] Started. Will trigger daily at 07:30 and 22:00.")
 
-    # 部署/重启后立即执行一次（方便验证）
-    import threading as _threading
-    _threading.Thread(target=scan_and_execute, daemon=True).start()
-
-    # 部署/重启后立即执行一次（方便测试）
-    print("[Scheduler] Running initial scan immediately for testing...")
+    # 部署/重启后立即执行一次（用于验证）
     scan_and_execute()
