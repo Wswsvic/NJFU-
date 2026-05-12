@@ -27,3 +27,6 @@ Thumbs.db
 !data/
 data/*.json
 !data/.gitkeep
+
+#调试日志
+debug/*.*
