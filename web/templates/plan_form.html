@@ -113,7 +113,7 @@
                             <label for="start_date" class="form-label">开始日期</label>
                             <input type="date" class="form-control" id="start_date" name="start_date" value="">
                         </div>
-                        <div class="col">
+                        <div class="col" id="end_date_col">
                             <label for="end_date" class="form-label">结束日期（可选）</label>
                             <input type="date" class="form-control" id="end_date" name="end_date" value="">
                         </div>
@@ -163,6 +163,10 @@ function syncUI() {
     // 显示或隐藏非全天时间设置区块
     timeSettingsWrapper.style.display = isFullDay ? 'none' : 'block';
     fullDayHelp.style.display = isFullDay ? 'block' : 'none';
+
+    // "只订一次"时隐藏结束日期
+    const endDateCol = document.getElementById('end_date_col');
+    endDateCol.style.display = (repeatType === 'once') ? 'none' : 'block';
 
     // 判断当前重复规则是否包含了周五 (5)
     let includesFriday = false;
