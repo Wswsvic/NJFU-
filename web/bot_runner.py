@@ -86,12 +86,12 @@ def execute_reservation(plan: dict) -> tuple:
 
             if result and result.get("code") == 0:
                 resv_id = result["data"]["resvId"]
-                if user.get("pushplus_token"):
-                    inform(
-                        "座位预约成功",
-                        f"日期: {target_date}\n时间: {begin_time_str}~{end_time_str}\n编号: {resv_id}",
-                        token=user["pushplus_token"],
-                    )
+                inform(
+                    "座位预约成功",
+                    f"日期: {target_date}\n时间: {begin_time_str}~{end_time_str}\n编号: {resv_id}",
+                    token=user.get("pushplus_token"),
+                    email=user.get("email"),
+                )
                 return True, f"预约成功，编号: {resv_id}"
             else:
                 msg = result.get("message", str(result)) if result else "无可用座位"
