@@ -118,10 +118,10 @@ def _run_and_log(plan: dict, target_date: str):
 
 
 def start_scheduler():
-    """启动调度器（每天 07:30 触发预约，22:00 归档日志）"""
+    """启动调度器（每天 07:05 触发预约，22:00 归档日志）"""
     scheduler.add_job(
         scan_and_execute,
-        CronTrigger(hour=7, minute=30),
+        CronTrigger(hour=7, minute=5),
         id="seat_scan",
         name="Daily seat reservation scan",
     )
