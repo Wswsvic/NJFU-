@@ -141,7 +141,7 @@ def start_scheduler():
     )
 
     scheduler.start()
-    print("[Scheduler] Started. Will trigger daily at 07:30 and 22:00.")
+    print("[Scheduler] Started. Will trigger daily at 07:05 and 22:00.")
 
     # 部署/重启后立即执行一次（异步，不阻塞 FastAPI 启动）
     threading.Thread(target=scan_and_execute, daemon=True).start()
