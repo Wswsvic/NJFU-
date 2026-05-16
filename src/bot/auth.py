@@ -144,8 +144,8 @@ class AuthManager:
                         var data = JSON.parse(xhr.responseText);
                         if (data.data) {
                             var token = data.data.token || null;
-                            var accNo = data.data.appAccNo || data.data.app_acc_no || null;
-                            return JSON.stringify({token: token, appAccNo: accNo});
+                            var accNo = data.data.accNo || data.data.app_acc_no || null;
+                            return JSON.stringify({token: token, accNo: accNo});
                         }
                     }
                 } catch(e) {}
@@ -157,7 +157,7 @@ class AuthManager:
                 try:
                     parsed = json.loads(token)
                     token = parsed["token"]
-                    app_acc_no = parsed.get("appAccNo")
+                    app_acc_no = parsed.get("accNo")
                 except Exception:
                     app_acc_no = None
                 print("  [4] Token: %s..." % str(token)[:20])
