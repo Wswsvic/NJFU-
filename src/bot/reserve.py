@@ -1,6 +1,5 @@
 from typing import Dict, Any, Optional
 from datetime import datetime
-from config.settings import Settings
 from config.constants import SeatConstants
 from .network import NetworkManager
 
@@ -8,9 +7,9 @@ from .network import NetworkManager
 class ReserveManager:
     """预约管理"""
 
-    def __init__(self, network: NetworkManager):
+    def __init__(self, network: NetworkManager, app_acc_no: int):
         self.network = network
-        self.app_acc_no = Settings.APP_ACC_NO
+        self.app_acc_no = app_acc_no
 
     def reserve(self, dev_id: int, begin_time, end_time) -> Dict[str, Any]:
         """预约座位

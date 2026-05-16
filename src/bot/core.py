@@ -22,7 +22,7 @@ class LibraryBot:
         self.auth = AuthManager(username, password_plain, headless)
         self.network = NetworkManager(self.session)
         self.seat = SeatManager(self.network)
-        self.reserve_manager = ReserveManager(self.network)
+        self.reserve_manager = None  # login 时动态创建，需要 app_acc_no
 
         self.token = None
 
@@ -35,7 +35,7 @@ class LibraryBot:
 
         # [1/2] 浏览器登录
         print("[1/2] Browser login (portal approach)...")
-        cookies, token = self.auth.browser_login()
+        cookies, token, app_acc_no = self.auth.browser_login()
         if not cookies:
             raise Exception("Browser login failed")
 
@@ -51,6 +51,12 @@ class LibraryBot:
             print("  Token: %s..." % token[:20])
         else:
             print("  WARNING: no token!")
+
+        if app_acc_no:
+            self.reserve_manager = ReserveManager(self.network, app_acc_no)
+            print("  appAccNo: %s" % app_acc_no)
+        else:
+            raise Exception("Failed to get appAccNo from userInfo API")
 
         print("")
 

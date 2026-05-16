@@ -13,9 +13,6 @@ class Settings:
         "LjIwNS4xNTguMjAwLjE3MS4xNTMuMTUwLjIxNi45Ny4yMTEuMTU2LjE1OC4xNzMuMTQ4LjE1NS4xNTUuMjE3LjEwMC4xNTAuMTY1"
     )
 
-    # 应用账号
-    APP_ACC_NO = 78388
-
     # 请求头
     HEADERS = {
         "User-Agent": (

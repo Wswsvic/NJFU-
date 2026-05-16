@@ -55,7 +55,6 @@ def test_config():
     from config.settings import Settings
 
     print(f"  WEBVPN_BASE: {Settings.WEBVPN_BASE}")
-    print(f"  APP_ACC_NO:  {Settings.APP_ACC_NO}")
     print(f"  SEAT_PATH 长度: {len(Settings.SEAT_PATH)}")
     print("✅ 配置正常")
 

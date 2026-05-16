@@ -142,15 +142,29 @@ class AuthManager:
                     xhr.send();
                     if (xhr.status === 200) {
                         var data = JSON.parse(xhr.responseText);
-                        return (data.data && data.data.token) ? data.data.token : null;
+                        if (data.data) {
+                            var token = data.data.token || null;
+                            var accNo = data.data.appAccNo || data.data.app_acc_no || null;
+                            return JSON.stringify({token: token, appAccNo: accNo});
+                        }
                     }
                 } catch(e) {}
                 return null;
             ''', userinfo_api)
             
             if token:
+                import json
+                try:
+                    parsed = json.loads(token)
+                    token = parsed["token"]
+                    app_acc_no = parsed.get("appAccNo")
+                except Exception:
+                    app_acc_no = None
                 print("  [4] Token: %s..." % str(token)[:20])
+                if app_acc_no:
+                    print("  [4] appAccNo: %s" % app_acc_no)
             else:
+                app_acc_no = None
                 print("  [4] WARNING: Could not extract token!")
 
             if token:
@@ -159,7 +173,7 @@ class AuthManager:
                 print("  [4] WARNING: Could not extract token!")
 
             cookies = self._get_all_cookies(page)
-            return cookies, token
+            return cookies, token, app_acc_no
 
         except Exception as e:
             import traceback
