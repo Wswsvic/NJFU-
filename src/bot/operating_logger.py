@@ -98,20 +98,21 @@ class OperatingLogger:
         today = datetime.now().strftime("%Y%m%d")
         removed = 0
 
-        # 压缩当天所有 operating log
+        # 压缩当天所有 operating log 和 png 截图
         for filename in os.listdir(debug_dir):
-            if not filename.endswith("_operating.log"):
+            if not (filename.endswith("_operating.log") or filename.endswith(".png")):
                 continue
             full = os.path.join(debug_dir, filename)
             if not os.path.isfile(full):
                 continue
-            # 提取日期：YYYYMMDD_operating.log
-            date_str = filename[:8]
+            date_str = filename[:8] if filename[:8].isdigit() else today
             zip_name = f"operating_logs_{date_str}.zip"
             zip_path = os.path.join(debug_dir, zip_name)
 
-            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-                zf.write(full, filename)
+            with zipfile.ZipFile(zip_path, "a", zipfile.ZIP_DEFLATED) as zf:
+                base = os.path.basename(full)
+                if base not in zf.namelist():
+                    zf.write(full, base)
             os.remove(full)
             print(f"[Archive] {filename} → {zip_name}")
 

@@ -17,15 +17,21 @@ class SeatManager:
         raise Exception("seatMenu failed: " + str(result))
 
     def get_seats_by_room(self, room_id: int, reserve_date: str = None) -> List[Dict[str, Any]]:
-        """获取指定房间的座位列表"""
+        """获取指定房间的座位列表（带重试）"""
         if reserve_date is None:
             reserve_date = datetime.now().strftime("%Y%m%d")
-        result = self.network._get(
-            "/ic-web/reserve",
-            {"roomIds": room_id, "resvDates": reserve_date, "sysKind": 8},
-        )
-        if isinstance(result, dict) and result.get("code") == 0:
-            return result["data"]
+        for attempt in range(2):
+            result = self.network._get(
+                "/ic-web/reserve",
+                {"roomIds": room_id, "resvDates": reserve_date, "sysKind": 8},
+            )
+            if isinstance(result, dict) and result.get("code") == 0:
+                return result["data"]
+            if attempt == 0 and result.get("code") == 300:
+                print("  [Retry] get_seats failed (code=300), retrying in 4s...")
+                import time
+                time.sleep(4)
+                # 重新登录态可能需刷新，不做额外操作，直接重试
         raise Exception("get_seats failed: " + str(result))
 
     def get_available_seats(self, room_id: int, reserve_date: str = None) -> List[Dict[str, Any]]:

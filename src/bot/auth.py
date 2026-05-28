@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from typing import List, Tuple, Optional
 from config.settings import Settings
 
@@ -130,47 +131,53 @@ class AuthManager:
                 print("  [3] Waiting for SPA to initialize...")
                 time.sleep(3)
 
-            # Step 4: 提取 token（浏览器同步 XHR 调 SEAT_PATH 的 userInfo API）
+            # Step 4: 提取 token（带重试）
             print("  [4] Extracting token...")
             from config.settings import Settings as _Settings
             userinfo_api = _Settings.WEBVPN_BASE + _Settings.SEAT_PATH + "/ic-web/auth/userInfo"
             
-            token = page.run_js('''
-                try {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("GET", arguments[0] + "?vpn-12-libseat.njfu.edu.cn", false);
-                    xhr.send();
-                    if (xhr.status === 200) {
-                        var data = JSON.parse(xhr.responseText);
-                        if (data.data) {
-                            var token = data.data.token || null;
-                            var accNo = data.data.accNo || data.data.app_acc_no || null;
-                            return JSON.stringify({token: token, accNo: accNo});
-                        }
-                    }
-                } catch(e) {}
-                return null;
-            ''', userinfo_api)
+            token = None
+            app_acc_no = None
             
-            if token:
-                import json
-                try:
-                    parsed = json.loads(token)
-                    token = parsed["token"]
-                    app_acc_no = parsed.get("accNo")
-                except Exception:
-                    app_acc_no = None
-                print("  [4] Token: %s..." % str(token)[:20])
-                if app_acc_no:
-                    print("  [4] appAccNo: %s" % app_acc_no)
-            else:
-                app_acc_no = None
-                print("  [4] WARNING: Could not extract token!")
-
-            if token:
-                print("  [4] Found extracted token: %s..." % str(token)[:10])
-            else:
-                print("  [4] WARNING: Could not extract token!")
+            for attempt in range(2):
+                print("  [4] Attempt %d/2..." % (attempt + 1))
+                result = page.run_js('''
+                    try {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("GET", arguments[0] + "?vpn-12-libseat.njfu.edu.cn", false);
+                        xhr.send();
+                        if (xhr.status === 200) {
+                            var data = JSON.parse(xhr.responseText);
+                            if (data.data) {
+                                var token = data.data.token || null;
+                                var accNo = data.data.accNo || data.data.appAccNo || null;
+                                return JSON.stringify({token: token, accNo: accNo});
+                            }
+                        }
+                    } catch(e) {}
+                    return null;
+                ''', userinfo_api)
+                
+                if result:
+                    import json
+                    try:
+                        parsed = json.loads(result)
+                        token = parsed["token"]
+                        app_acc_no = parsed.get("accNo")
+                    except Exception:
+                        pass
+                
+                if token:
+                    print("  [4] Token: %s..." % str(token)[:20])
+                    if app_acc_no:
+                        print("  [4] appAccNo: %s" % app_acc_no)
+                    break
+                else:
+                    if attempt == 0:
+                        print("  [4] Attempt 1 failed, retrying in 4s...")
+                        time.sleep(4)
+                    else:
+                        print("  [4] WARNING: Could not extract token after 2 attempts!")
 
             cookies = self._get_all_cookies(page)
             return cookies, token, app_acc_no
@@ -178,11 +185,13 @@ class AuthManager:
         except Exception as e:
             import traceback
             traceback.print_exc()
+            # 异常时截图保存，带时间戳防止覆盖
             try:
-                page.get_screenshot(path=os.path.join(debug_dir, "error_snap_exception.png"))
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                page.get_screenshot(path=os.path.join(debug_dir, f"error_{ts}.png"))
             except:
                 pass
-            return [], None
+            return [], None, None
         finally:
             try:
                 page.quit()
