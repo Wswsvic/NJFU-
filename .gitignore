@@ -31,3 +31,5 @@ data/*.json
 #调试日志
 debug/*.*
 question.txt
+
+./md_file/*.*
