@@ -32,4 +32,4 @@ data/*.json
 debug/*.*
 question.txt
 
-md_file/*.*
+md_file/
