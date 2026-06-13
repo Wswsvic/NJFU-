@@ -88,16 +88,27 @@ class AuthManager:
             seat_connect = Settings.WEBVPN_BASE + "/rump_frontend/connect/?target=Library&id=12"
             print("  [3] Navigating to seat system...")
             page.get(seat_connect)
-            time.sleep(2)
+            time.sleep(3)
             print("  [3] URL: %s" % page.url[:120])
 
-            # 处理 rump_frontend 重定向
-            if "rump_frontend" in page.url:
+            # 处理 rump_frontend 重定向（可能在上一个 connect 页面或当前页面）
+            for _ in range(2):
+                if "rump_frontend/connect" not in page.url:
+                    break
                 link = page.ele("#url")
                 if link:
+                    print("  [3] Clicking redirect link...")
                     link.click()
+                    time.sleep(3)
+                    print("  [3] Redirected to: %s" % page.url[:120])
+                else:
+                    print("  [3] No #url link found, trying alternative...")
+                    # 备选：直接访问图书馆首页
+                    page.get(Settings.WEBVPN_BASE + "/rump_frontend/nav/")
                     time.sleep(2)
-                    print("  [3] Clicked redirect, now: %s" % page.url[:120])
+                    # 再试一次 connect
+                    page.get(seat_connect)
+                    time.sleep(3)
 
             # Step 3.5: 在图书馆页面点击座位预约入口
             time.sleep(1)
