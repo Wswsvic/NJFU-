@@ -26,4 +26,10 @@ DEBUG_DIR = os.path.join(BASE_DIR, 'debug')
 os.makedirs(DEBUG_DIR, exist_ok=True)
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 PLANS_FILE = os.path.join(DATA_DIR, 'plans.json')
-LOGS_FILE = os.path.join(DATA_DIR, 'logs.json')
+LOGS_FILE = os.path.join(DEBUG_DIR, 'logs.json')
+
+# 如果旧 data/logs.json 存在，复制到新位置
+_old_logs = os.path.join(DATA_DIR, 'logs.json')
+if os.path.exists(_old_logs) and not os.path.exists(LOGS_FILE):
+    import shutil
+    shutil.copy2(_old_logs, LOGS_FILE)

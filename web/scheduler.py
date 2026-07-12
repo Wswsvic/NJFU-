@@ -1,5 +1,5 @@
 """
-调度器：每天早上 07:30 触发，扫描并执行预约任务
+调度器：每天早上 07:05 触发，扫描并执行预约任务
 """
 from datetime import datetime, timedelta
 import threading

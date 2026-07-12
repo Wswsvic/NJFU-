@@ -3,9 +3,10 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from typing import Optional
 
 
-def inform(title: str, content: str, token: str | None = None, email: str | None = None) -> bool:
+def inform(title: str, content: str, token: Optional[str] = None, email: Optional[str] = None) -> bool:
     """
     发送预约通知。优先级：PushPlus > QQ 邮箱 > 不通知
 

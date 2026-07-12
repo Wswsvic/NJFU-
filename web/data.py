@@ -150,13 +150,35 @@ def save_logs(logs: list[dict]) -> None:
 
 
 def add_log(log: dict) -> dict:
-    """线程安全地追加日志（锁覆盖整个读-改-写）"""
+    """线程安全地追加日志（锁覆盖整个读-改-写周期）"""
     with _lock:
         logs = _read_json_raw(config.LOGS_FILE, [])
         log["id"] = max((l["id"] for l in logs), default=0) + 1
         logs.append(log)
         _write_json_raw(config.LOGS_FILE, logs)
+    # 同时追加到 debug/ 文本日志，方便调试
+    _append_text_log(log)
     return log
+
+
+def _append_text_log(log: dict):
+    """追加一份易读的文本日志到 debug/operating.log"""
+    import os as _os
+    try:
+        log_dir = _os.path.dirname(config.LOGS_FILE)
+        txt_path = _os.path.join(log_dir, "operating.log")
+        line = (
+            f"[{log.get('created_at', '?')}] "
+            f"plan={log.get('plan_id', '?')} "
+            f"user={log.get('user_id', '?')} "
+            f"date={log.get('target_date', '?')} "
+            f"{'✅' if log.get('status') == 'success' else '❌'} "
+            f"{log.get('message', '')}\n"
+        )
+        with open(txt_path, "a", encoding="utf-8") as f:
+            f.write(line)
+    except Exception:
+        pass  # 文本日志写入失败不影响主流程
 
 
 def get_log_by_plan_and_date(plan_id: int, target_date: str) -> dict | None:

@@ -15,6 +15,8 @@ import uvicorn
 import csv
 
 from web import data, auth, config, scheduler
+from src.bot.metrics import get_metrics, start_heartbeat
+from fastapi.responses import Response
 
 rooms_data = {}
 
@@ -47,6 +49,8 @@ async def lifespan(app: FastAPI):
     data.get_logs()
     load_rooms_data()
     scheduler.start_scheduler()
+    start_heartbeat(interval=300)  # 每 5 分钟更新心跳
+    print("[Metrics] Heartbeat started, /metrics endpoint ready.")
     yield
     # 关闭时释放资源：关闭调度器，防止后台线程残留
     from web.scheduler import scheduler as _sched
@@ -251,6 +255,15 @@ async def get_logs(request: Request):
     logs = sorted(logs, key=lambda x: x["created_at"], reverse=True)[:20]
     return JSONResponse(logs)
 
+
+
+# ── Prometheus /metrics 端点 ──
+
+
+@app.get("/metrics")
+async def metrics():
+    """暴露 Prometheus 指标（由同机 Prometheus 抓取）"""
+    return Response(content=get_metrics(), media_type="text/plain; version=0.0.4")
 
 
 if __name__ == "__main__":
