@@ -33,3 +33,7 @@ debug/*.*
 question.txt
 
 md_file/
+
+self/
+
+.trae/
