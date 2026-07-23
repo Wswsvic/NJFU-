@@ -4,6 +4,7 @@
 import sys
 import os
 from datetime import datetime, date, time
+from typing import Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
@@ -12,8 +13,7 @@ from src.bot.operating_logger import OperatingLogger
 from inform.inform import inform
 from . import data, config
 
-# 操作日志全局单例
-_op_logger: OperatingLogger | None = None
+_op_logger: Optional[OperatingLogger] = None
 
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DEBUG_DIR = os.path.join(_BASE_DIR, "debug")

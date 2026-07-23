@@ -3,7 +3,7 @@
 """
 import json
 import threading
-from typing import Any
+from typing import Any, Optional
 from . import config
 
 _lock = threading.Lock()
@@ -61,7 +61,7 @@ def add_user(user: dict) -> dict:
     return user
 
 
-def get_user_by_username(username: str) -> dict | None:
+def get_user_by_username(username: str) -> Optional[dict]:
     users = get_users()
     for u in users:
         if u["username"] == username:
@@ -69,7 +69,7 @@ def get_user_by_username(username: str) -> dict | None:
     return None
 
 
-def get_user_by_id(user_id: int) -> dict | None:
+def get_user_by_id(user_id: int) -> Optional[dict]:
     users = get_users()
     for u in users:
         if u["id"] == user_id:
@@ -181,7 +181,7 @@ def _append_text_log(log: dict):
         pass  # 文本日志写入失败不影响主流程
 
 
-def get_log_by_plan_and_date(plan_id: int, target_date: str) -> dict | None:
+def get_log_by_plan_and_date(plan_id: int, target_date: str) -> Optional[dict]:
     logs = get_logs()
     for l in logs:
         if l["plan_id"] == plan_id and l["target_date"] == target_date:
