@@ -15,7 +15,7 @@ class ReserveManager:
         """预约座位
 
         Args:
-            dev_id: 设备 ID
+            dev_id: 座位 ID
             begin_time: datetime 对象或毫秒时间戳
             end_time: datetime 对象或毫秒时间戳
         """
