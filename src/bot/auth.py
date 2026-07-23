@@ -24,8 +24,15 @@ class AuthManager:
         log_path = os.path.join(debug_dir, "chrome_debug.log")
 
         co = ChromiumOptions()
-        # Linux 容器: 手动指定 Chromium 路径 (DrissionPage 不读 CHROME_BIN 环境变量)
+        # Linux: 自动检测 Chromium 路径
         chrome_bin = os.environ.get("CHROME_BIN", "")
+        if not chrome_bin or not os.path.exists(chrome_bin):
+            import shutil
+            for p in ("/usr/bin/chromium-browser", "/usr/bin/chromium",
+                       "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable"):
+                if shutil.which(p) or os.path.exists(p):
+                    chrome_bin = p
+                    break
         if chrome_bin and os.path.exists(chrome_bin):
             co.set_browser_path(chrome_bin)
         if self.headless:
