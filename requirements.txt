@@ -5,6 +5,7 @@ fastapi
 jinja2
 ijson
 prometheus-client
+python-multipart
 pycryptodome
 pycryptodomex
 python-dotenv
