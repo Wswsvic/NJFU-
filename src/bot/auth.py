@@ -1,4 +1,5 @@
 import time
+import threading
 from datetime import datetime
 from typing import List, Tuple, Optional
 from config.settings import Settings
@@ -17,11 +18,13 @@ class AuthManager:
         from DrissionPage import ChromiumPage, ChromiumOptions
         import os
 
+        tag = threading.current_thread().name
+
         # 获取项目根目录并确保 debug 文件夹存在
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         debug_dir = os.path.join(base_dir, "debug")
         os.makedirs(debug_dir, exist_ok=True)
-        log_path = os.path.join(debug_dir, "chrome_debug.log")
+        log_path = os.path.join(debug_dir, f"chrome_debug_{tag}.log")
 
         co = ChromiumOptions()
         co.auto_port()
@@ -48,14 +51,14 @@ class AuthManager:
 
         try:
             # Step 1: 打开 WebVPN 门户
-            print("  [1] Opening WebVPN portal...")
+            print(f"[{tag}]   [1] Opening WebVPN portal...")
             page.get(Settings.WEBVPN_BASE)
             time.sleep(2)
-            print("  [1] URL: %s" % page.url[:120])
+            print(f"[{tag}]   [1] URL: %s" % page.url[:120])
 
             # Step 2: CAS 登录
             if "authserver" in page.url:
-                print("  [2] CAS login...")
+                print(f"[{tag}]   [2] CAS login...")
                 uname_el = page.ele("#username") or page.ele("@name=username")
                 pwd_el = page.ele("#password") or page.ele("@name=password")
                 if not uname_el or not pwd_el:
@@ -63,14 +66,14 @@ class AuthManager:
                     uname_el = page.ele("#username") or page.ele("@name=username")
                     pwd_el = page.ele("#password") or page.ele("@name=password")
                 if not uname_el or not pwd_el:
-                    print("  [2] Cannot find form!")
+                    print(f"[{tag}]   [2] Cannot find form!")
                     return [], None
 
                 uname_el.clear()
                 uname_el.input(self.username)
                 pwd_el.clear()
                 pwd_el.input(self.password_plain)
-                print("  [2] Filled: %s" % self.username)
+                print(f"[{tag}]   [2] Filled: %s" % self.username)
 
                 btn = page.ele("#login-submit") or page.ele("tag:button@type=submit")
                 if btn:
@@ -81,23 +84,23 @@ class AuthManager:
                 for i in range(20):
                     time.sleep(1)
                     if "authserver" not in page.url:
-                        print("  [2] Portal loaded after %ds" % (i + 1))
+                        print(f"[{tag}]   [2] Portal loaded after %ds" % (i + 1))
                         break
                 else:
-                    print("  [2] CAS login timeout!")
+                    print(f"[{tag}]   [2] CAS login timeout!")
                     return [], None
             else:
-                print("  [2] Already past CAS")
+                print(f"[{tag}]   [2] Already past CAS")
 
             time.sleep(2)
-            print("  [2] Current URL: %s" % page.url[:120])
+            print(f"[{tag}]   [2] Current URL: %s" % page.url[:120])
 
             # Step 3: 导航到座位系统（通过图书馆页面）
             seat_connect = Settings.WEBVPN_BASE + "/rump_frontend/connect/?target=Library&id=12"
-            print("  [3] Navigating to seat system...")
+            print(f"[{tag}]   [3] Navigating to seat system...")
             page.get(seat_connect)
             time.sleep(3)
-            print("  [3] URL: %s" % page.url[:120])
+            print(f"[{tag}]   [3] URL: %s" % page.url[:120])
 
             # 处理 rump_frontend 重定向（可能在上一个 connect 页面或当前页面）
             for _ in range(2):
@@ -105,12 +108,12 @@ class AuthManager:
                     break
                 link = page.ele("#url")
                 if link:
-                    print("  [3] Clicking redirect link...")
+                    print(f"[{tag}]   [3] Clicking redirect link...")
                     link.click()
                     time.sleep(3)
-                    print("  [3] Redirected to: %s" % page.url[:120])
+                    print(f"[{tag}]   [3] Redirected to: %s" % page.url[:120])
                 else:
-                    print("  [3] No #url link found, trying alternative...")
+                    print(f"[{tag}]   [3] No #url link found, trying alternative...")
                     # 备选：直接访问图书馆首页
                     page.get(Settings.WEBVPN_BASE + "/rump_frontend/nav/")
                     time.sleep(2)
@@ -121,7 +124,7 @@ class AuthManager:
             # Step 3.5: 在图书馆页面点击座位预约入口
             time.sleep(1)
             current_title = page.title or ""
-            print("  [3] Checking library page title: %s" % current_title)
+            print(f"[{tag}]   [3] Checking library page title: %s" % current_title)
             
             seat_btn = (
                 page.ele(".group-item-img-2")
@@ -134,24 +137,24 @@ class AuthManager:
             token = None
             
             if seat_btn:
-                print("  [3] On library page, clicking seat entry...")
+                print(f"[{tag}]   [3] On library page, clicking seat entry...")
                 seat_btn.click()
                 time.sleep(1)
                 
                 # 切换到最新标签页
                 if page.tabs_count > 1:
-                    print(f"  [3] Detected {page.tabs_count} tabs, switching to the latest one...")
+                    print(f"[{tag}]   [3] Detected {page.tabs_count} tabs, switching to the latest one...")
                     page.get_tab(page.latest_tab).set.activate()
                     time.sleep(1)
                 
-                print("  [3] Clicked seat entry, now: %s" % page.url[:200])
+                print(f"[{tag}]   [3] Clicked seat entry, now: %s" % page.url[:200])
                 
                 # 等待 SPA 初始化
-                print("  [3] Waiting for SPA to initialize...")
+                print(f"[{tag}]   [3] Waiting for SPA to initialize...")
                 time.sleep(3)
 
             # Step 4: 提取 token（带重试）
-            print("  [4] Extracting token...")
+            print(f"[{tag}]   [4] Extracting token...")
             from config.settings import Settings as _Settings
             userinfo_api = _Settings.WEBVPN_BASE + _Settings.SEAT_PATH + "/ic-web/auth/userInfo"
             
@@ -159,7 +162,7 @@ class AuthManager:
             app_acc_no = None
             
             for attempt in range(2):
-                print("  [4] Attempt %d/2..." % (attempt + 1))
+                print(f"[{tag}]   [4] Attempt %d/2..." % (attempt + 1))
                 result = page.run_js('''
                     try {
                         var xhr = new XMLHttpRequest();
@@ -187,16 +190,16 @@ class AuthManager:
                         pass
                 
                 if token:
-                    print("  [4] Token: %s..." % str(token)[:20])
+                    print(f"[{tag}]   [4] Token: %s..." % str(token)[:20])
                     if app_acc_no:
-                        print("  [4] appAccNo: %s" % app_acc_no)
+                        print(f"[{tag}]   [4] appAccNo: %s" % app_acc_no)
                     break
                 else:
                     if attempt == 0:
-                        print("  [4] Attempt 1 failed, retrying in 4s...")
+                        print(f"[{tag}]   [4] Attempt 1 failed, retrying in 4s...")
                         time.sleep(4)
                     else:
-                        print("  [4] WARNING: Could not extract token after 2 attempts!")
+                        print(f"[{tag}]   [4] WARNING: Could not extract token after 2 attempts!")
 
             cookies = self._get_all_cookies(page)
             return cookies, token, app_acc_no

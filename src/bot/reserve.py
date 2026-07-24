@@ -1,5 +1,6 @@
 from typing import Dict, Any, Optional
 from datetime import datetime
+import threading
 from config.constants import SeatConstants
 from .network import NetworkManager
 
@@ -60,14 +61,15 @@ class ReserveManager:
             seat_manager: SeatManager 实例
             prefer_seat: 优先选择的座位名称
         """
+        tag = threading.current_thread().name
         print("")
-        print("Auto-reserve: %s ~ %s" % (begin_time, end_time))
+        print(f"[{tag}] Auto-reserve: %s ~ %s" % (begin_time, end_time))
 
         date_str = begin_time.strftime("%Y-%m-%d")[:10].replace("-", "")
         available = seat_manager.get_available_seats(room_id, date_str)
 
         if not available:
-            print("No available seats")
+            print(f"[{tag}] No available seats")
             return None
 
         target = None
@@ -80,12 +82,12 @@ class ReserveManager:
         if not target:
             target = available[0]
 
-        print("Selected: %s" % target["devName"])
+        print(f"[{tag}] Selected: %s" % target["devName"])
         result = self.reserve(target["devId"], begin_time, end_time)
 
         if isinstance(result, dict) and result.get("code") == 0:
-            print("Success! ID: %s" % result["data"]["resvId"])
+            print(f"[{tag}] Success! ID: %s" % result["data"]["resvId"])
             return result
         else:
-            print("Failed: %s" % result.get("message", result))
+            print(f"[{tag}] Failed: %s" % result.get("message", result))
             return None

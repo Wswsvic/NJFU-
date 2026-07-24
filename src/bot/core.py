@@ -1,4 +1,5 @@
 import requests
+import threading
 from config.settings import Settings
 from .auth import AuthManager
 from .network import NetworkManager
@@ -28,49 +29,50 @@ class LibraryBot:
 
     def login(self) -> bool:
         """执行完整登录流程"""
+        tag = threading.current_thread().name
         print("=" * 60)
-        print("Login")
+        print(f"[{tag}] Login")
         print("=" * 60)
         print("")
 
         # [1/2] 浏览器登录
-        print("[1/2] Browser login (portal approach)...")
+        print(f"[{tag}] [1/2] Browser login (portal approach)...")
         cookies, token, app_acc_no = self.auth.browser_login()
         if not cookies:
             raise Exception("Browser login failed")
 
         for name, value, domain, path in cookies:
             self.session.cookies.set(name, value, domain=domain, path=path)
-        print("  Got %d cookies" % len(cookies))
+        print(f"[{tag}]   Got %d cookies" % len(cookies))
         for name, value, _, _ in cookies:
-            print("    %s = %s..." % (name, value[:20]))
+            print(f"[{tag}]     %s = %s..." % (name, value[:20]))
 
         if token:
             self.session.headers["token"] = token
             self.token = token
-            print("  Token: %s..." % token[:20])
+            print(f"[{tag}]   Token: %s..." % token[:20])
         else:
-            print("  WARNING: no token!")
+            print(f"[{tag}]   WARNING: no token!")
 
         if app_acc_no:
             self.reserve_manager = ReserveManager(self.network, app_acc_no)
-            print("  appAccNo: %s" % app_acc_no)
+            print(f"[{tag}]   appAccNo: %s" % app_acc_no)
         else:
             raise Exception("Failed to get appAccNo from userInfo API")
 
         print("")
 
         # [2/2] 验证登录状态
-        print("[2/2] Verifying...")
+        print(f"[{tag}] [2/2] Verifying...")
         try:
             result = self.seat.get_floor_overview()
             if result:
-                print("  Floors OK - %d" % len(result))
+                print(f"[{tag}]   Floors OK - %d" % len(result))
         except Exception as e:
-            print("  Floor verify: %s" % e)
+            print(f"[{tag}]   Floor verify: %s" % e)
 
         print("")
-        print("Done!")
+        print(f"[{tag}] Done!")
         return True
 
     # 兼容原版 API 的方法
