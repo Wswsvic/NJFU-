@@ -4,7 +4,8 @@ Scheduler 功能测试 - 手动触发 scan_and_execute 执行预约计划
 """
 import sys
 import os
-import time
+import json
+from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -20,6 +21,8 @@ def main():
     print("=" * 60)
     print()
 
+    start_time = datetime.now().isoformat()
+
     print("[Test] 调用 scan_and_execute() ...")
     scan_and_execute()
     print("[Test] scan_and_execute 返回，等待线程池执行完毕...")
@@ -29,27 +32,28 @@ def main():
     print("[Test] 所有预约任务执行完毕")
     print()
 
-    print("=" * 60)
-    print("执行结果")
-    print("=" * 60)
-
     from web import config
     logs_path = config.LOGS_FILE
 
+    print("=" * 60)
+    print(f"执行结果 (仅展示 {start_time} 之后的日志)")
+    print("=" * 60)
+
     if os.path.exists(logs_path):
-        import json
         with open(logs_path, "r", encoding="utf-8") as f:
             logs = json.load(f)
 
-        if logs:
-            for log in logs:
+        new_logs = [l for l in logs if l.get("created_at", "") >= start_time]
+
+        if new_logs:
+            for log in new_logs:
                 status_icon = "PASS" if log.get("status") == "success" else "FAIL"
                 print(f"  [{status_icon}] plan_id={log.get('plan_id')}  "
                       f"user_id={log.get('user_id')}  "
                       f"date={log.get('target_date')}  "
                       f"message={log.get('message')}")
         else:
-            print("  (无日志记录)")
+            print("  (本次执行未产生新日志)")
     else:
         print(f"  日志文件不存在: {logs_path}")
 

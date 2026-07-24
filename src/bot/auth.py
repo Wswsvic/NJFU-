@@ -24,6 +24,7 @@ class AuthManager:
         log_path = os.path.join(debug_dir, "chrome_debug.log")
 
         co = ChromiumOptions()
+        co.auto_port()
         # Linux: 自动检测 Chromium 路径
         chrome_bin = os.environ.get("CHROME_BIN", "")
         if not chrome_bin or not os.path.exists(chrome_bin):
@@ -215,22 +216,6 @@ class AuthManager:
                 page.quit()
             except Exception as e:
                 print(f"  [WARN] Failed to quit ChromiumPage gracefully: {e}")
-                # 兜底：尝试强制终止 Chrome/Chromium 进程
-                import subprocess, platform
-                try:
-                    if platform.system() == "Windows":
-                        subprocess.run(
-                            ["taskkill", "/F", "/IM", "chrome.exe", "/T"],
-                            capture_output=True, timeout=5,
-                        )
-                    else:
-                        # Linux/Docker 容器中
-                        subprocess.run(
-                            ["pkill", "-f", "chromium|chrome"],
-                            capture_output=True, timeout=5,
-                        )
-                except Exception:
-                    pass
 
     @staticmethod
     def _get_all_cookies(page) -> List[Tuple[str, str, str, str]]:
