@@ -2,6 +2,7 @@ APScheduler
 cryptography
 DrissionPage
 fastapi
+jinja2
 ijson
 prometheus-client
 pycryptodome
