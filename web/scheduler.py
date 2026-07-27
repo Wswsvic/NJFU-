@@ -121,7 +121,7 @@ def start_scheduler():
     """启动调度器（每天 07:05 触发预约，22:00 归档日志）"""
     scheduler.add_job(
         scan_and_execute,
-        CronTrigger(hour=7, minute=5),
+        CronTrigger(hour=7, minute=1),
         id="seat_scan",
         name="Daily seat reservation scan",
     )
