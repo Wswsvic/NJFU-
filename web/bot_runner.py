@@ -63,6 +63,12 @@ def execute_reservation(plan: dict) -> tuple:
     except Exception as e:
         import traceback
         traceback.print_exc()
+        inform(
+            "座位预约失败",
+            f"日期: {target_date}\n时间: {begin_time_str}~{end_time_str}\n原因: 登录失败 - {e}",
+            token=user.get("pushplus_token"),
+            email=user.get("email"),
+        )
         return False, f"登录失败: {e}"
 
     try:
@@ -96,8 +102,20 @@ def execute_reservation(plan: dict) -> tuple:
             else:
                 msg = result.get("message", str(result)) if result else "无可用座位"
                 print(f"[{target_date}] 预约返回信息: {msg}")
+                inform(
+                    "座位预约失败",
+                    f"日期: {target_date}\n时间: {begin_time_str}~{end_time_str}\n原因: {msg}",
+                    token=user.get("pushplus_token"),
+                    email=user.get("email"),
+                )
                 return False, msg
     except Exception as e:
         import traceback
         traceback.print_exc()
+        inform(
+            "座位预约失败",
+            f"日期: {target_date}\n时间: {begin_time_str}~{end_time_str}\n原因: {e}",
+            token=user.get("pushplus_token"),
+            email=user.get("email"),
+        )
         return False, str(e)
